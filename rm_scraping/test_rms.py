@@ -35,6 +35,19 @@ class RMTest(RM):
   def assert_user_pols(self, userpols):
     check.equal(self.user_to_policies, userpols)
 
+  def assert_matching_votes(self, user_to_vote):
+    found_users = set()
+    for vote in self.votes:
+      user = vote['user']
+      if user in user_to_vote:
+        check.equal(vote['vote'], user_to_vote[user])
+        found_users.add(user)
+    check.equal(
+        set(user_to_vote.keys()),
+        found_users
+    )
+
+
 loader = RMLoader(rm_cls=RMTest)
 def load_rm(shortname):
   return loader.load_shortname(shortname)
@@ -87,4 +100,33 @@ def test_ag2015():
       n_comments=5,
       n_votes=5,
       n_participants=6,
+  )
+
+def test_trinity():
+  rm = load_rm('trinity')
+  rm.assert_cols(
+      from_title='Trinity College, Dublin',
+      to_title='Trinity College Dublin',
+  )
+  rm.assert_votecount({'Oppose': 2})
+
+def test_iraqwar_2016():
+  rm = load_rm('iraqwar_2016')
+  rm.assert_matching_votes({
+    'Shhhhwwww!!': 'Support',
+  })
+
+def test_openmove():
+  # An rm to '?'
+  rm = load_rm('palestine_openmove')
+  rm.assert_cols(
+      from_title='Foreign relations of the Palestinian National Authority',
+      to_title=None,
+  )
+
+def test_notdone():
+  rm = load_rm('hop_notdone')
+  rm.assert_cols(
+      closer='DrStrauss',
+      outcome='not done',
   )

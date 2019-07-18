@@ -55,6 +55,14 @@ class Comment(object):
         vote=m.group(1),
         date=self.timestamp.date(),
       )
+    # Third choice: a comment at any indentation level that starts with a bold token
+    m = re.match(r"[\*\:]*\s*'''(.*?)'''", self.text)
+    if m:
+      return dict(
+        user=self.author,
+        vote=m.group(1),
+        date=self.timestamp.date(),
+      )
     # Include at least a dummy vote for any comment at indentation level 1.
     if self.indentation == 1:
       vote = ''
@@ -126,7 +134,11 @@ class Comment(object):
     # end of the line, but better to just be liberal. (Relists are what make
     # this especially complicated)
     buffer = 12
-    if utc_ix < len(line)-buffer and ('Relist' not in line or not nom):
+    if (utc_ix < len(line)-buffer 
+        and ('Relist' not in line or not nom)
+        and 'Autosigned' not in line
+        and 'Template:Unsigned' not in line
+        ):
       logging.warning("Unusual 'signature'(?) with (UTC) not at end:\n{!r}".format(
         line))
     return 'User:' in line or 'User talk:' in line
@@ -154,11 +166,21 @@ class Comment(object):
     tm = re.search("\d{2}:\d{2}, (\d{1,2}) ([A-Za-z]*) (\d{4})", self.text)
     timestr = tm.group(0)
     return dateparser.parse(timestr)
+
+  def get_close_outcome(self):
+    """TODO: would be better to make another subclass for Closes
+    """
+    # First search for {{done}} or {{not done}} templates (see History of 
+    # Palestine test case)
+    m = re.search(r'{{((?:not )?done)}}', self.text)
+    if m:
+      return m.group(1)
+    return self.firstbold
   
   @property
   def firstbold(self):
-    m = re.search("'''(.*?)'''", self.text)
-    return m.group(1)
+    m = re.search("'''(.*?)'''", self.text, re.IGNORECASE)
+    return m and m.group(1)
 
 
 class Nomination(Comment):
@@ -213,8 +235,15 @@ class Nomination(Comment):
     if m:
       return frum, m.group(1)
     # Less common: [[foo]]
-    m = re.match(r'\s*\[\[:?(.*)\]\]', right)
+    m = re.match(r'\s*\[\[:?(.*?)\]\]', right)
     if m:
       return frum, m.group(1)
+    # Another fairly common case: ?
+    # Used for 'open-ended' RMs, where nominator sees a good reason why the current
+    # title is not appropriate, but doesn't want to restrict discussion to one specific
+    # destination title.
+    m = re.match(r'\s*\?', right)
+    if m:
+      return frum, None
     raise FatalParsingException("Couldn't find to_title in line: {!r}".format(line))
 

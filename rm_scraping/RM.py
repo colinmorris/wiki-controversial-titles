@@ -1,4 +1,5 @@
 import dateparser
+import pprint
 import logging
 import re
 from collections import defaultdict, Counter
@@ -6,6 +7,7 @@ import wikitextparser as wtp
 
 from comment import Comment
 from constants import *
+from exceptions import *
 
 def parse_anchor(anchor):
   s = anchor.strip()
@@ -26,7 +28,9 @@ class RM(object):
     all_froms='',
     all_tos='',
   )
-  COLS = ['from_title', 'to_title', 'rm_link', 'article', # talk page hosting this RM
+  COLS = [
+      'from_title', 'to_title', # None if right-hand-side of arrow is '?'
+      'rm_link', 'article', # talk page hosting this RM
       'id', # Unique id for this RM (currently same as rm_link)
       'nom_date', 'nominator', 
        'close_date', 'closer', 'outcome', 'n_relists',
@@ -94,8 +98,8 @@ class RM(object):
     return 'https://en.wikipedia.org/wiki/' + suff
   
   def dissect(self):
-    # TODO: Sort cols in the order of self.COLS
-    pprint.pprint(self.row)
+    ordered_pairs = [(k, self.row[k]) for k in self.COLS]
+    pprint.pprint(ordered_pairs)
     print("#### Votes ####")
     pprint.pprint(self.votes)
     print("#### Polquotes ####")
@@ -256,6 +260,9 @@ class RM(object):
         return
   
   def _extract_close(self):
+    # TODO: maybe simpler to fold this into the logic of Comment.find_comments()?
+    # This text does end up getting wrapped in a Comment() instance anyways.
+    # could add another subclass for Close (similar to Nomination)
     i = 0
     lines = self.lines
     while i < len(lines):
@@ -271,21 +278,23 @@ class RM(object):
     if lines[a-1] != '':
       self.warn('Missing newline after boilerplate')
       
-    i = a+1
+    i = a
     b = None
+    # Postcondition: b is the index of the line following the last line of the close
     while i < len(lines):
       line = lines[i]
+      if Comment.has_signature(line):
+        b = i+1
+        break
       if line == '----':
+        self.warn('Reached close hline without seeing signature first?')
         b = i
         break
       i += 1
     if b is None:
-      self.warn('Malformed close (no hline)')
+      raise FatalParsingException("Couldn't find end of close comment")
     if lines[b+1] != '':
       self.warn('Missing blank line after close hline. Was {!r}'.format(lines[b+1]))
-      self.where = b+1
-    else:
-      self.where = b+2
     self.where = b
     return '\n'.join(lines[a:b])
   def parse_close(self):
@@ -301,5 +310,5 @@ class RM(object):
     self.setn(
       closer=close.author,
       close_date=close.timestamp,
-      outcome=close.firstbold,
+      outcome=close.get_close_outcome(),
     )    
