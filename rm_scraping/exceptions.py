@@ -1,0 +1,3 @@
+
+class FatalParsingException(Exception):
+  pass

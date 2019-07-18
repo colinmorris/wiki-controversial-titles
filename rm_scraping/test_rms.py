@@ -32,6 +32,9 @@ class RMTest(RM):
     actual_vc = Counter(v['vote'] for v in self.votes)
     assert actual_vc == votecount
 
+  def assert_user_pols(self, userpols):
+    check.equal(self.user_to_policies, userpols)
+
 loader = RMLoader(rm_cls=RMTest)
 def load_rm(shortname):
   return loader.load_shortname(shortname)
@@ -60,6 +63,27 @@ def test_sealevel():
       outcome='not moved',
       nominator='Fgnievinski',
       n_relists=1,
+      n_comments=5,
+      n_votes=5,
+      n_participants=6,
+  )
+
+def test_benghazi():
+  rm = load_rm('benghazi')
+  rm.assert_cols(
+      n_comments=8,
+      n_participants=7,
+      n_relists=0,
+      n_votes=5,
+  )
+  rm.assert_user_pols({
+    'Richard-of-Earth': {'WP:CRITERIA': 1, 'WP:COMMONNAME': 1},
+    'RightCowLeftCoast': {'WP:COMMONNAME': 1},
+  })
+
+def test_ag2015():
+  rm = load_rm('ag2015')
+  rm.assert_cols(
       n_comments=5,
       n_votes=5,
       n_participants=6,

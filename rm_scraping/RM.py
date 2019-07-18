@@ -5,8 +5,7 @@ from collections import defaultdict, Counter
 import wikitextparser as wtp
 
 from comment import Comment
-
-RARROW = '→'
+from constants import *
 
 def parse_anchor(anchor):
   s = anchor.strip()
@@ -95,8 +94,11 @@ class RM(object):
     return 'https://en.wikipedia.org/wiki/' + suff
   
   def dissect(self):
+    # TODO: Sort cols in the order of self.COLS
     pprint.pprint(self.row)
+    print("#### Votes ####")
     pprint.pprint(self.votes)
+    print("#### Polquotes ####")
     pprint.pprint(self.user_to_policies)
     
   def set(self, k, v):
@@ -148,44 +150,27 @@ class RM(object):
     nom = next(comments)
     if self.comments is not None:
       self.comments.append(nom)
-    nom.set_nom()
     self.log_val(nominator_comment=nom.text)
-    rarrows = nom.text.count(RARROW)
-    if rarrows > 1:
+
+    froms, tos = nom.from_titles, nom.to_titles
+    if len(froms) > 1:
       # Multi-move
-      rex = r'\[\[\:([^\]]*?)]] → {{no redirect\|([^}]*)}}'
-      froms = []
-      tos = []
-      for match in re.finditer(rex, nom.text):
-        froms.append(match.group(1))
-        tos.append(match.group(1))
-      # Use the first one as a representative
-      from_title = froms[0]
-      to_title = tos[0]
       self.setn(
         n_articles=len(froms),
         all_froms='|'.join(froms),
         all_tos='|'.join(tos),
       )
-    else:
-      i_arrow = nom.text.find(RARROW)
-      left = nom.text[:i_arrow]
-      self.log("Left of rarrow = {!r}".format(left))
-      m = re.search('\[\[:(.*)\]\]', left)
-      from_title = m.group(1)
-      nr = find_template(nom.parsed, 'no redirect')
-      to_title = nr.arguments[0].value
+    self.setn(
+      nom_date=nom.timestamp,
+      from_title=froms[0],
+      to_title=tos[0],
+      n_relists=nom.relists,
+    )
     nominator=nom.author
     polcounts = nom.policy_counts()
     if polcounts:
       self.user_to_policies[nominator].update(polcounts)
-    self.setn(
-      nominator=nominator,
-      nom_date=nom.timestamp,
-      from_title=from_title,
-      to_title=to_title,
-      n_relists=nom.relists,
-    )
+    self.setn(nominator=nominator)
     self.parse_discussion(comments)
     
   def parse_discussion(self, comments):

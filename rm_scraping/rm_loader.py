@@ -9,6 +9,8 @@ from RM import RM
 SHORTNAME_TO_SLINK = dict(
     global_warming = 'Talk:List_of_scientists_who_disagree_with_the_scientific_consensus_on_global_warming#Requested_move_5_February_2018',
     sealevel = 'Talk:Metres_above_sea_level#Requested_move_16_December_2018',
+    benghazi = 'Talk:2012_Benghazi_attack/Archive_4#Requested_move',
+    ag2015 = 'Talk:War_in_Afghanistan_(2001–present)/Archive_12#Requested_move_1_October_2015',
 )
 class RMLoader(object):
 
@@ -17,6 +19,16 @@ class RMLoader(object):
     self.wiki = wiki
     self.rm_cls = rm_cls
     self.rm_kwargs = rm_kwargs or {}
+
+  def load(self, thing):
+    if thing in SHORTNAME_TO_SLINK:
+      return self.load_shortname(thing)
+    return self.load_section_link(thing)
+
+  def load_section_link(self, slink):
+    txt = self.load_text_from_section_link(slink)
+    pgname, anchor = slink.split('#')
+    return self.rm_cls(txt, pgname, **self.rm_kwargs)
 
   def load_text_from_section_link(self, slink):
     pgname, anchor = slink.split('#')

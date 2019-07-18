@@ -4,43 +4,25 @@ import re
 from collections import Counter
 import wikitextparser as wtp
 
+from constants import *
+from exceptions import *
+
 class Comment(object):
   def __init__(self, text):
-    if isinstance(text, list):
-      # er, nvm, self.lines not currently used.
-      self.lines = text
-      self.text = '\n'.join(text)
-    else:
-      self.text = text
-      self.lines = text.split('\n')
+    # Leading and trailing whitespace should be totally ignorable.
+    # (Most common cause: leaving a space between the start of their
+    # text and the previous comment)
+    self.text = text.strip()
+    self.lines = self.text.split('\n')
     self.parsed = wtp.parse(self.text)
-    self.nom = False
 
   def __repr__(self):
     return '<{} by {}: {!r}>'.format(
-      ('Nom' if self.nom else 'Comment'),
+      self.__class__.__name__,
       self.author,
       self.text[:144],
       )
     
-  def set_nom(self):
-    self.nom = True
-    self.relists = 0
-    # Need to re-evaluate given that text may contain some relisting notices at the end.
-    # Looks like text can be Relisting or Relisted. https://en.wikipedia.org/wiki/Template:Relisting
-    # Hope that hasn't changed over time....
-    relist_prefix = "<small>--'''''Relist"
-    relist_ix = self.text.find(relist_prefix)
-    # NB: If our comment parsing routine has accidentally swallowed up a 
-    # subsequent comment by a different user into the nom comment, this
-    # will erase any trace of it.
-    if relist_ix != -1:
-      subtext = self.text[:relist_ix]
-      orig_text = self.text
-      self.text = subtext
-      self.parsed = wtp.parse(subtext)
-      self.relists = orig_text[relist_ix:].count(relist_prefix)
-      
   def policy_counts(self):
     rex = r'(?:MOS|WP):[A-Z]+'
     counts = Counter()
@@ -102,18 +84,25 @@ class Comment(object):
         return ind
     
   @classmethod
-  def find_comments(cls, text, include_sections=False):
+  def find_comments(cls, text, include_sections=False, rm=True):
     acc = []
     if isinstance(text, list):
       lines = text
     else:
       lines = text.split('\n')
 
+    found = 0
     for line in lines:
       if include_sections or not re.match('==.*==', line):
         acc.append(line)
-      if cls.has_signature(line):
-        yield cls(acc)
+      if cls.has_signature(line, nom=found==0):
+        comment_text = '\n'.join(acc)
+        if found == 0 and rm:
+          # First comment of an rm is a Nom
+          yield Nomination(comment_text)
+        else:
+          yield cls(comment_text)
+        found += 1
         acc = []
     if 0 and acc: 
       # nvm, this is totally expected. Will normally end with hline, then "The above discussion
@@ -121,7 +110,7 @@ class Comment(object):
       logging.warning('Leftover non-comment matter after comments: {}'.format(acc))
       
   @staticmethod
-  def has_signature(line):
+  def has_signature(line, nom=False):
     # Quick and dirty heuristic. May need to improve.
     # Example relisted nom signature
     #  [[User:Fgnievinski|fgnievinski]] ([[User talk:Fgnievinski|talk]]) 04:35, 16 December 2018 (UTC)
@@ -137,7 +126,7 @@ class Comment(object):
     # end of the line, but better to just be liberal. (Relists are what make
     # this especially complicated)
     buffer = 12
-    if utc_ix < len(line)-buffer and 'Relist' not in line:
+    if utc_ix < len(line)-buffer and ('Relist' not in line or not nom):
       logging.warning("Unusual 'signature'(?) with (UTC) not at end:\n{!r}".format(
         line))
     return 'User:' in line or 'User talk:' in line
@@ -170,3 +159,62 @@ class Comment(object):
   def firstbold(self):
     m = re.search("'''(.*?)'''", self.text)
     return m.group(1)
+
+
+class Nomination(Comment):
+  def __init__(self, text):
+    self.fulltext = text
+    # Looks like text can be Relisting or Relisted. https://en.wikipedia.org/wiki/Template:Relisting
+    # Hope that hasn't changed over time....
+    relist_prefix = "<small>--'''''Relist"
+    relist_ix = text.find(relist_prefix)
+    # NB: If our comment parsing routine has accidentally swallowed up a 
+    # subsequent comment by a different user into the nom comment, this
+    # will erase any trace of it.
+    if relist_ix != -1:
+      text = text[:relist_ix]
+    self.relists = self.fulltext[relist_ix:].count(relist_prefix)
+    super().__init__(text)
+
+    self.parse_from_tos()
+
+  def get_vote(self):
+    assert False, "Nominations don't vote"
+
+  def parse_from_tos(self):
+    """Parse out the source article(s) and proposed destination title(s)
+    """
+    froms = []
+    tos = []
+    for line in self.lines:
+      if RARROW in line:
+        f, t = self.parse_fromto_line(line)
+        froms.append(f)
+        tos.append(t)
+    if len(froms) == 0:
+      raise FatalParsingException("No fromtos found in nom: {!r}".format(self.text))
+    self.from_titles = froms
+    self.to_titles = tos
+
+  def parse_fromto_line(self, line):
+    assert line.count(RARROW) == 1, "Too many rarrows: {!r}".format(line)
+    i_arrow = line.find(RARROW)
+    left = line[:i_arrow]
+    m = re.search('\[\[:?(.*)\]\]', left)
+    if not m:
+      raise FatalParsingException(
+        "Couldn't find from_title left of rarrow for line: {!r}".format(line)
+      )
+    frum = m.group(1)
+
+    right = line[i_arrow+1:]
+    # Most usual case: {{no redirect|foo}}
+    m = re.match(r'\s*{{no redirect\|(.*?)}}', right)
+    if m:
+      return frum, m.group(1)
+    # Less common: [[foo]]
+    m = re.match(r'\s*\[\[:?(.*)\]\]', right)
+    if m:
+      return frum, m.group(1)
+    raise FatalParsingException("Couldn't find to_title in line: {!r}".format(line))
+
