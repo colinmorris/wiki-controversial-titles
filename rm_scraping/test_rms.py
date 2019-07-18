@@ -130,3 +130,11 @@ def test_notdone():
       closer='DrStrauss',
       outcome='not done',
   )
+
+def test_movedto():
+  rm = load_rm('movedto')
+  rm.assert_cols(
+      from_title='Oyneg Shabbos',
+      to_title='Oyneg Shabbos (group)',
+      outcome='Moved to Ringelblum Archive',
+  )
