@@ -147,3 +147,13 @@ def test_multimove():
       all_tos='Can Tho|Ca Mau|Cao Lanh|My Tho|Nam Dinh|Phan Thiet|Quang Ngai|Rach Gia|Thai '
         'Nguyen|Thanh Hoa|Thu Dau Mot|Vinh Yen|Vung Tau|Yen Bai',
   )
+
+def test_weirdclose():
+  rm = load_rm('weirdclose')
+  rm.assert_cols(
+      closer='BD2412',
+      outcome='Moved per consensus',
+      from_title='Academy Award',
+      to_title='Academy Awards',
+      nominator='CrunchySkies',
+  )

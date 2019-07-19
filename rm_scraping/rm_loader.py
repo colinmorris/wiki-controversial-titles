@@ -21,6 +21,8 @@ SHORTNAME_TO_SLINK = dict(
     hop_notdone = 'Talk:History_of_Palestine/Archive_2#Requested_move_30_July_2017',
     movedto='Talk:Ringelblum_Archive#Requested_move_20_June_2016',
     multimove='Talk:Cần_Thơ/Archive_1#Requested_move:_Removing_Vietnamese_Diacritics',
+    # An unusual close that's missing a blank line/hline
+    weirdclose='Talk:Academy_Awards#Suggested_move',
 )
 class RMLoader(object):
 

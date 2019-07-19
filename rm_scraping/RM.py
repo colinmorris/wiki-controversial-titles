@@ -270,6 +270,15 @@ class RM(object):
     # could add another subclass for Close (similar to Nomination)
     i = 0
     lines = self.lines
+    # Typical layout of top matter:
+    # <div class="boilerplate" .... Template:RM top -->
+    # :''The following is an archive discussion...
+    # [blank line]
+    # closer comment
+    # hline
+    # blank line
+    # nom
+    # ... but the blank lines and hlines are more or less optional
     while i < len(lines):
       line = lines[i]
       if '<!-- Template:RM top -->' in line:
@@ -282,6 +291,8 @@ class RM(object):
       self.warn('Malformed close')
     if lines[a-1] != '':
       self.warn('Missing newline after boilerplate')
+      # take a step back
+      a -= 1
       
     i = a
     b = None
