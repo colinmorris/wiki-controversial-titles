@@ -46,7 +46,8 @@ class BaseComment(object):
         ):
       logging.warning("Unusual 'signature'(?) with (UTC) not at end:\n{!r}".format(
         line))
-    return 'User:' in line or 'User talk:' in line
+    # Yes, the underscore version is attested. I hate people.
+    return 'User:' in line or 'User talk:' in line or 'User_talk:' in line
 
   def __repr__(self):
     return '<{} by {}: {!r}>'.format(
@@ -82,7 +83,7 @@ class BaseComment(object):
         continue
       col_ix = t.find(':')
       l, r = t[:col_ix], t[col_ix+1:]
-      if l in ('User', 'User talk'):
+      if l.lower() in ('user', 'user talk', 'user_talk'):
         auth = r
         # In case they added a '#top' to the link or something
         if '#' in auth:

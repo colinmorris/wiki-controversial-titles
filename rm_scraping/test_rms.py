@@ -208,3 +208,12 @@ def test_withdrawn():
       nominator='Dicklyon',
       n_articles=3,
   )
+
+def test_user_underscore_talk():
+  rm = load_rm('user_talk')
+  rm.assert_cols(
+      outcome='not moved',
+      closer='Bradv',
+      from_title='2015 Thalys train attack',
+      to_title='Thalys train attack',
+  )

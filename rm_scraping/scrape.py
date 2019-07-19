@@ -8,7 +8,7 @@ from RM import RM
 from constants import *
 
 FLUSH_EVERY = 50
-LIMIT = 150
+LIMIT = 0
 
 NEXT_ID = 0
 
