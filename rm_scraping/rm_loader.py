@@ -24,6 +24,7 @@ SHORTNAME_TO_SLINK = dict(
     # An unusual close that's missing a blank line/hline
     weirdclose='Talk:Academy_Awards#Suggested_move',
     boldto='Talk:Władysław_II_Jagiełło#Requested_move',
+    nored='Talk:Dolph_Ziggler#Requested_move',
 )
 class RMLoader(object):
 

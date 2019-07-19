@@ -246,8 +246,10 @@ class Nomination(Comment):
       logging.warning("Found stricken-through text right of rarrow. Looking past it. right={!r}".format(right))
       struck_title = m.group(2)
       right = right[m.end():]
-    # Most usual case: {{no redirect|foo}}
-    m = re.match(optional_prefix + r'{{no redirect\|(.*?)}}', right)
+    # Most usual case: {{no redirect|foo}}. Also, rarely: 
+    # - {{no redirect|1=foo}}
+    # = {{noredirect|foo}}
+    m = re.match(optional_prefix + r'{{no ?redirect\|(?:1=)?(.*?)}}', right)
     if m:
       return frum, m.group(1)
     # Less common: [[foo]]

@@ -163,3 +163,10 @@ def test_boldto():
   rm.assert_cols(
       to_title='Władysław II Jagiełło',
   )
+
+def test_nored():
+  rm = load_rm('nored')
+  rm.assert_cols(
+      from_title='Nick Nemeth',
+      to_title='Dolph Ziggler',
+  )
