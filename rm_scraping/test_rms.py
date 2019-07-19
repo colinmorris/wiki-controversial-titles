@@ -187,3 +187,13 @@ def test_multiqmarks():
       n_articles=79,
       all_tos='|'.join('None' for _ in range(79)),
   )
+
+def test_talkative_closer():
+  # RM where the closer left an additional message after their closing message
+  rm = load_rm('talkative_closer')
+  rm.assert_cols(
+      closer='StraussInTheHouse',
+      outcome='Not moved',
+      nominator='SelfieCity',
+      n_relists=0,
+  )

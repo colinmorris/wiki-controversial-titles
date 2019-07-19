@@ -27,6 +27,7 @@ SHORTNAME_TO_SLINK = dict(
     nored='Talk:Dolph_Ziggler#Requested_move',
     nocomms='Talk:Tyson_Kidd#Requested_Move',
     multi_qmarks='Talk:Georgetown_(Washington,_D.C.)#Requested_move_23_November_2018',
+    talkative_closer='Talk:Saint_Peter#Requested_move_24_May_2019',
 )
 class RMLoader(object):
 
