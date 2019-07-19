@@ -170,3 +170,20 @@ def test_nored():
       from_title='Nick Nemeth',
       to_title='Dolph Ziggler',
   )
+
+def test_nocomms():
+  rm = load_rm('nocomms')
+  rm.assert_cols(
+      outcome='page moved',
+      n_votes=0,
+      n_comments=0,
+      n_participants=1,
+  )
+
+def test_multiqmarks():
+  rm = load_rm('multi_qmarks')
+  rm.assert_cols(
+      # Have to admit, I didn't count. Just trusting this is right.
+      n_articles=79,
+      all_tos='|'.join('None' for _ in range(79)),
+  )

@@ -167,8 +167,8 @@ class RM(object):
       # Multi-move
       self.setn(
         n_articles=len(froms),
-        all_froms='|'.join(froms),
-        all_tos='|'.join(tos),
+        all_froms='|'.join(map(str, froms)),
+        all_tos='|'.join(map(str, tos)),
       )
     self.setn(
       nom_date=nom.timestamp,

@@ -25,6 +25,8 @@ SHORTNAME_TO_SLINK = dict(
     weirdclose='Talk:Academy_Awards#Suggested_move',
     boldto='Talk:Władysław_II_Jagiełło#Requested_move',
     nored='Talk:Dolph_Ziggler#Requested_move',
+    nocomms='Talk:Tyson_Kidd#Requested_Move',
+    multi_qmarks='Talk:Georgetown_(Washington,_D.C.)#Requested_move_23_November_2018',
 )
 class RMLoader(object):
 

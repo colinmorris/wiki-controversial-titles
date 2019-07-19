@@ -163,7 +163,14 @@ class Comment(object):
       
   @property
   def timestamp(self):
-    tm = re.search("\d{2}:\d{2}, (\d{1,2}) ([A-Za-z]*) (\d{4})", self.text)
+    # Example of non-standard time in signature:
+    # https://en.wikipedia.org/wiki/Talk:KCLA_(Arkansas)#Defunct_radio_and_TV_station_disambiguator_changes_(consolidated)
+    # Thanks a lot, Neutralhomer.
+    tm = re.search("\d{2}:\d{2}(?:,|(?: on)) (\d{1,2}) ([A-Za-z]*) (\d{4})", self.text)
+    if not tm:
+      logging.warning("Couldn't parse signature timestamp. Using dummytime. {!r}".format(
+        self.text[-200:]))
+      return DUMMYTIME
     timestr = tm.group(0)
     return dateparser.parse(timestr)
 
