@@ -157,3 +157,9 @@ def test_weirdclose():
       to_title='Academy Awards',
       nominator='CrunchySkies',
   )
+
+def test_boldto():
+  rm = load_rm('boldto')
+  rm.assert_cols(
+      to_title='Władysław II Jagiełło',
+  )

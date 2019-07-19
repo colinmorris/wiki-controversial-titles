@@ -235,6 +235,9 @@ class Nomination(Comment):
       )
     frum = m.group(1)
 
+    # Junk that can come before the to_title. Spaces. Single quotes (for rare cases where
+    # nominator bolds or italicizes the to_title). Opening html tags (e.g. <u>)
+    optional_prefix = r"[\s']*(?:<[a-zA-Z]>)?[\s']*"
     right = line[i_arrow+1:]
     # First check whether the original to title has been stricken through and replaced
     m = re.match(r'\s*<(s|del)>(.*?)</(s|del)>', right, re.IGNORECASE)
@@ -244,18 +247,18 @@ class Nomination(Comment):
       struck_title = m.group(2)
       right = right[m.end():]
     # Most usual case: {{no redirect|foo}}
-    m = re.match(r'\s*{{no redirect\|(.*?)}}', right)
+    m = re.match(optional_prefix + r'{{no redirect\|(.*?)}}', right)
     if m:
       return frum, m.group(1)
     # Less common: [[foo]]
-    m = re.match(r'\s*\[\[:?(.*?)\]\]', right)
+    m = re.match(optional_prefix + r'\[\[:?(.*?)\]\]', right)
     if m:
       return frum, m.group(1)
     # Another fairly common case: ?
     # Used for 'open-ended' RMs, where nominator sees a good reason why the current
     # title is not appropriate, but doesn't want to restrict discussion to one specific
     # destination title.
-    m = re.match(r'\s*\?', right)
+    m = re.match(optional_prefix + r'\?', right)
     if m:
       return frum, None
     raise FatalParsingException("Couldn't find to_title in line: {!r}".format(line))

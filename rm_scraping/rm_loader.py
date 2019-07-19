@@ -23,6 +23,7 @@ SHORTNAME_TO_SLINK = dict(
     multimove='Talk:Cần_Thơ/Archive_1#Requested_move:_Removing_Vietnamese_Diacritics',
     # An unusual close that's missing a blank line/hline
     weirdclose='Talk:Academy_Awards#Suggested_move',
+    boldto='Talk:Władysław_II_Jagiełło#Requested_move',
 )
 class RMLoader(object):
 
