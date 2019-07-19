@@ -226,8 +226,11 @@ class Nomination(Comment):
         f, t = self.parse_fromto_line(line)
         froms.append(f)
         tos.append(t)
+    # nvm, make this a soft error, and handle it further up
     if len(froms) == 0:
-      raise FatalParsingException("No fromtos found in nom: {!r}".format(self.text))
+      #raise FatalParsingException("No fromtos found in nom: {!r}".format(self.text))
+      logging.warning("No fromtos found in nom: {!r}".format(
+        self.text[:200]))
     self.from_titles = froms
     self.to_titles = tos
 

@@ -170,10 +170,12 @@ class RM(object):
         all_froms='|'.join(map(str, froms)),
         all_tos='|'.join(map(str, tos)),
       )
+    mainfrom = UNKNOWN if len(froms) == 0 else froms[0]
+    mainto = UNKNOWN if len(tos) == 0 else tos[0]
     self.setn(
       nom_date=nom.timestamp,
-      from_title=froms[0],
-      to_title=tos[0],
+      from_title=mainfrom,
+      to_title=mainto,
       n_relists=nom.relists,
     )
     nominator=nom.author
