@@ -67,6 +67,7 @@ class RM(object):
     self.row = self.ROW_DEFAULTS.copy()
     self.row['article'] = pagename[len(pre):(pagename.find('/') if '/' in pagename else None)]
     self.row['rm_link'] = pagename + '#' + parse_anchor(self.parsed.sections[1].title)
+    self.log_val(url = self.url)
     self.row['chars'] = len(section)
     # List of dicts having keys vote, user
     self.votes = []
@@ -204,7 +205,6 @@ class RM(object):
       if polcounts:
         self.user_to_policies[auth].update(polcounts)
         
-    # TODO: ugh, should votes be collapsed to 1-per-user? yeah
     self._merge_votes()
     self.participants = participants # for debugging
     self.setn(

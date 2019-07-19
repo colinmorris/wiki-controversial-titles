@@ -1,5 +1,6 @@
 import sys
 from pprint import pprint
+import argparse
 
 from rm_loader import RMLoader
 
@@ -8,6 +9,8 @@ loader = RMLoader(
 )
 def load(shortname):
   return loader.load_shortname(shortname)
+
+#parser = argparse.ArgumentParser()
 
 #rm = load('sealevel')
 if len(sys.argv) > 1:

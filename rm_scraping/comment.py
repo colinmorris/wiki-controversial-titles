@@ -236,6 +236,13 @@ class Nomination(Comment):
     frum = m.group(1)
 
     right = line[i_arrow+1:]
+    # First check whether the original to title has been stricken through and replaced
+    m = re.match(r'\s*<(s|del)>(.*?)</(s|del)>', right, re.IGNORECASE)
+    struck_title = None
+    if m:
+      logging.warning("Found stricken-through text right of rarrow. Looking past it. right={!r}".format(right))
+      struck_title = m.group(2)
+      right = right[m.end():]
     # Most usual case: {{no redirect|foo}}
     m = re.match(r'\s*{{no redirect\|(.*?)}}', right)
     if m:

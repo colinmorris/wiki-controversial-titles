@@ -35,6 +35,11 @@ class RMLoader(object):
       return self.load_shortname(thing)
     return self.load_section_link(thing)
 
+  def load_pg_and_section_ix(self, pgname, six):
+    pg = self.wiki.pages[pgname]
+    section = pg.text(section=six)
+    return self.rm_cls(section, pgname, **self.rm_kwargs)
+
   def load_section_link(self, slink):
     txt = self.load_text_from_section_link(slink)
     pgname, anchor = slink.split('#')
