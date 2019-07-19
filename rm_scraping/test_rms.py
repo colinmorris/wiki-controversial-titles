@@ -66,6 +66,7 @@ def test_global_warming():
       n_votes=7,
       from_title='List of scientists opposing the mainstream scientific assessment of global warming',
       to_title='List of scientists who disagree with the scientific consensus on global warming',
+      talkpage='Talk:List_of_scientists_who_disagree_with_the_scientific_consensus_on_global_warming',
   )
   rm.assert_votecount({'Support': 7})
 
@@ -88,6 +89,7 @@ def test_benghazi():
       n_participants=7,
       n_relists=0,
       n_votes=5,
+      talkpage='Talk:2012_Benghazi_attack/Archive_4',
   )
   rm.assert_user_pols({
     'Richard-of-Earth': {'WP:CRITERIA': 1, 'WP:COMMONNAME': 1},
@@ -196,4 +198,13 @@ def test_talkative_closer():
       outcome='Not moved',
       nominator='SelfieCity',
       n_relists=0,
+  )
+
+def test_withdrawn():
+  rm = load_rm('withdrawn')
+  rm.assert_cols(
+      outcome='Withdrawn/snow by nom.',
+      closer='Dicklyon',
+      nominator='Dicklyon',
+      n_articles=3,
   )

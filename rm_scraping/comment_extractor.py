@@ -1,9 +1,11 @@
 import re
+import logging
 
 from base_comment import BaseComment
 from comment import Comment
 from nomination import Nomination
 from close import Close
+from constants import *
 
 class CommentExtractor(object):
   """Decomposes an RM into a bunch of Comment instances.
@@ -82,10 +84,10 @@ class CommentExtractor(object):
         nom_text = '\n'.join(acc)
         # Bit of a hack
         test_comm = BaseComment(nom_text)
-        # If this is a comment by the closer, it's not the nom.
-        # For now just discard it - it doesn't fit any of our nice categories
-        # of comments that we deal with.
-        if test_comm.author == self.close.author:
+        # If this is a comment by the closer, it's not the nom. *UNLESS the
+        # nominator is withdrawing*. If there's a rarrow in the text, let's
+        # assume it is the latter case.
+        if test_comm.author == self.close.author and RARROW not in nom_text:
           acc = []
         else:
           self.nom = Nomination(nom_text)

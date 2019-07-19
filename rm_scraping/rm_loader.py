@@ -28,6 +28,7 @@ SHORTNAME_TO_SLINK = dict(
     nocomms='Talk:Tyson_Kidd#Requested_Move',
     multi_qmarks='Talk:Georgetown_(Washington,_D.C.)#Requested_move_23_November_2018',
     talkative_closer='Talk:Saint_Peter#Requested_move_24_May_2019',
+    withdrawn='Talk:2012_Aurora,_Colorado_shooting#Requested_move_earlier_5_March_2019',
 )
 class RMLoader(object):
 

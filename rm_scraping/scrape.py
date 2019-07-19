@@ -1,14 +1,19 @@
 import csv
+import os
 import mwclient
 import argparse
+import pandas as pd
 
 from RM import RM
 from constants import *
 
 FLUSH_EVERY = 50
-LIMIT = 0
+LIMIT = 150
+
+NEXT_ID = 0
 
 def scrape_rms_for_title(title, f_fail, debug=0):
+  global NEXT_ID
   pg = wiki.pages[title]
   section_ix = 1
   while 1:
@@ -18,10 +23,13 @@ def scrape_rms_for_title(title, f_fail, debug=0):
       break
     if RM.section_is_rm(section):
       try:
-        yield RM(section, title, debug=debug)
-      except:
+        yield RM(section, title, debug=debug, id=NEXT_ID)
+      except Exception as e:
         row = '{}\t{}\n'.format(title, section_ix)
         f_fail.write(row)
+        print('Exception:', e)
+      else:
+        NEXT_ID += 1
     section_ix += 1
 
 def flush_rms(rms, rm_w, votes_w, pols_w):
@@ -56,8 +64,12 @@ if __name__ == '__main__':
       fresh = True
     else:
       fresh = st.st_size == 0
+  extant_pages = set()
   if not fresh:
-    print("Found existing files. Appending.")
+    df = pd.read_csv('rms.csv')
+    NEXT_ID = df['id'].max() + 1
+    print("Found existing files. Appending. Ids starting at {}".format(NEXT_ID))
+    extant_pages = set(df['talkpage'].values)
   oflag = 'w' if fresh else 'a'
   frm = open('rms.csv', oflag)
   fvotes = open('votes.csv', oflag)
@@ -84,9 +96,11 @@ if __name__ == '__main__':
   failures = []
   f_fail = open('failures.tsv', oflag)
   i_pg = 0
-  # TODO: use this for numeric ids rather than string ids?
   i_rm = 0
   for result in results:
+    # Don't rescrape pages we've already done.
+    if result['title'] in extant_pages:
+      continue
     for rm in scrape_rms_for_title(result['title'], f_fail):
       rms.append(rm)
       i_rm += 1

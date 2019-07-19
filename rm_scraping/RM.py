@@ -33,9 +33,7 @@ class RM(object):
       'rm_link', # e.g. "Talk:Cheryl_(singer)/Archive_3#Rename_request_4"
       # Article this RM's talk page belongs to (just the above but stripped of
       # Talk: prefix, and any subpage suffix and anchor)
-      'article',
-      # TODO: Add a 'talk page' column, with rm_link minus the anchor?
-      # redundant but possibly convenient - like a lot of these cols
+      'article', 'talkpage',
       'id', # Unique id for this RM (currently same as rm_link)
       'nom_date', 'nominator', 
        'close_date', 'closer', 'outcome', 'n_relists',
@@ -67,6 +65,8 @@ class RM(object):
     self.row = self.ROW_DEFAULTS.copy()
     self.row['article'] = pagename[len(pre):(pagename.find('/') if '/' in pagename else None)]
     self.row['rm_link'] = pagename + '#' + parse_anchor(self.parsed.sections[1].title)
+    # I know, I know, a lot of redundancy going on.
+    self.row['talkpage'] = pagename
     self.log_val(url = self.url)
     self.row['chars'] = len(section)
     # List of dicts having keys vote, user
@@ -79,6 +79,8 @@ class RM(object):
     else:
       # More readable, but much less space-efficient. Not sure if that'll matter.
       # WP:RECOGNIZABILITY vs. WP:CONCISENESS. lol.
+      # NB: In rare cases, this is actually non-unique. e.g.
+      # https://en.wikipedia.org/wiki/Talk:Poppy_(entertainer)#Requested_move_20_May_2017
       self.id = self.row['rm_link']
     self.row['id'] = self.id
     
@@ -214,7 +216,7 @@ class RM(object):
     """
     user_to_power_and_ix = {}
     # TODO: add to this as more examples are observed
-    vote_kws = {'support', 'oppose', 'neutral', 'move'}
+    vote_kws = {'support', 'oppose', 'neutral', 'move', 'close'}
     for i, vote in enumerate(self.votes):
       rec = vote['vote'].lower()
       if rec == '':
