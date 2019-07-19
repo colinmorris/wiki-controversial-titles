@@ -138,3 +138,12 @@ def test_movedto():
       to_title='Oyneg Shabbos (group)',
       outcome='Moved to Ringelblum Archive',
   )
+
+def test_multimove():
+  rm = load_rm('multimove')
+  rm.assert_cols(
+      to_title='Can Tho',
+      n_articles=14,
+      all_tos='Can Tho|Ca Mau|Cao Lanh|My Tho|Nam Dinh|Phan Thiet|Quang Ngai|Rach Gia|Thai '
+        'Nguyen|Thanh Hoa|Thu Dau Mot|Vinh Yen|Vung Tau|Yen Bai',
+  )

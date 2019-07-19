@@ -30,7 +30,12 @@ class RM(object):
   )
   COLS = [
       'from_title', 'to_title', # None if right-hand-side of arrow is '?'
-      'rm_link', 'article', # talk page hosting this RM
+      'rm_link', # e.g. "Talk:Cheryl_(singer)/Archive_3#Rename_request_4"
+      # Article this RM's talk page belongs to (just the above but stripped of
+      # Talk: prefix, and any subpage suffix and anchor)
+      'article',
+      # TODO: Add a 'talk page' column, with rm_link minus the anchor?
+      # redundant but possibly convenient - like a lot of these cols
       'id', # Unique id for this RM (currently same as rm_link)
       'nom_date', 'nominator', 
        'close_date', 'closer', 'outcome', 'n_relists',
@@ -293,8 +298,8 @@ class RM(object):
       i += 1
     if b is None:
       raise FatalParsingException("Couldn't find end of close comment")
-    if lines[b+1] != '':
-      self.warn('Missing blank line after close hline. Was {!r}'.format(lines[b+1]))
+    #if lines[b+1] != '':
+    #  self.warn('Missing blank line after close hline. Was {!r}'.format(lines[b+1]))
     self.where = b
     return '\n'.join(lines[a:b])
   def parse_close(self):

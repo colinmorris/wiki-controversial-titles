@@ -20,6 +20,7 @@ SHORTNAME_TO_SLINK = dict(
     # Example of a close that uses a {{not done}} template rather than bold text.
     hop_notdone = 'Talk:History_of_Palestine/Archive_2#Requested_move_30_July_2017',
     movedto='Talk:Ringelblum_Archive#Requested_move_20_June_2016',
+    multimove='Talk:Cần_Thơ/Archive_1#Requested_move:_Removing_Vietnamese_Diacritics',
 )
 class RMLoader(object):
 
