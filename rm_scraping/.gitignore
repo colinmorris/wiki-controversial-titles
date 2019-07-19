@@ -1,2 +1,5 @@
 *.csv
 *.tsv
+fixtures/
+.cache/
+.ipynb_checkpoints/

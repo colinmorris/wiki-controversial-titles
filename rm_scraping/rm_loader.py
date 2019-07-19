@@ -58,6 +58,10 @@ class RMLoader(object):
       f = open(fname)
       return f.read()
     except FileNotFoundError:
+      # Make fixtures dir if necessary
+      if not os.path.isdir('fixtures'):
+        print("Making fixtures/ directory")
+        os.mkdir('fixtures')
       slink = SHORTNAME_TO_SLINK[shortname]
       txt = self.load_text_from_section_link(slink)
       with open(fname, 'w') as f:
