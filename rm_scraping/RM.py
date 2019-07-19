@@ -5,7 +5,7 @@ import re
 from collections import defaultdict, Counter
 import wikitextparser as wtp
 
-from comment import Comment
+from comment_extractor import CommentExtractor
 from constants import *
 from exceptions import *
 
@@ -81,10 +81,6 @@ class RM(object):
       # WP:RECOGNIZABILITY vs. WP:CONCISENESS. lol.
       self.id = self.row['rm_link']
     self.row['id'] = self.id
-    if self.debug:
-      self.comments = [] # for debugging
-    else:
-      self.comments = None
     
     self.parse()
     
@@ -144,10 +140,12 @@ class RM(object):
   
   def parse(self):
     self.check_mrv()
+    self.extracted = CommentExtractor(self.text)
     self.parse_close()
-    # TODO: Maybe instead of doing this, start from the first line that has a RARROW?
-    lines = self.lines[self.where:]
-    comments = Comment.find_comments(lines)
+    self.parse_nom(self.extracted.nom)
+    self.parse_discussion(self.extracted.comments)
+
+  def parse_nom(self, nom):
     """
     - nom stuff (line immediately below hline)
   - from title
@@ -157,10 +155,7 @@ class RM(object):
   - nominator
   - n relists (though I think sometimes these can occur further down rather than by nom?)
     """
-    nom = next(comments)
-    if self.comments is not None:
-      self.comments.append(nom)
-    self.log_val(nominator_comment=nom.text)
+    self.log_val(nominator_comment=nom.extract)
 
     froms, tos = nom.from_titles, nom.to_titles
     if len(froms) > 1:
@@ -183,7 +178,6 @@ class RM(object):
     if polcounts:
       self.user_to_policies[nominator].update(polcounts)
     self.setn(nominator=nominator)
-    self.parse_discussion(comments)
     
   def parse_discussion(self, comments):
     """Populate columns related to volume of discussion. Also populate self.votes.
@@ -191,8 +185,6 @@ class RM(object):
     participants = {self.row['nominator']}
     n_comments = 0 # Don't count nom
     for comment in comments:
-      if self.comments is not None:
-        self.comments.append(comment)
       auth = comment.author
       participants.add(auth)
       n_comments += 1
@@ -266,55 +258,6 @@ class RM(object):
         self.set('mrv', 1)
         return
   
-  def _extract_close(self):
-    # TODO: maybe simpler to fold this into the logic of Comment.find_comments()?
-    # This text does end up getting wrapped in a Comment() instance anyways.
-    # could add another subclass for Close (similar to Nomination)
-    i = 0
-    lines = self.lines
-    # Typical layout of top matter:
-    # <div class="boilerplate" .... Template:RM top -->
-    # :''The following is an archive discussion...
-    # [blank line]
-    # closer comment
-    # hline
-    # blank line
-    # nom
-    # ... but the blank lines and hlines are more or less optional
-    while i < len(lines):
-      line = lines[i]
-      if '<!-- Template:RM top -->' in line:
-        a = i + 3
-        break
-      i += 1
-    if i == len(lines):
-      self.warn('No close boilerplate found')
-    if a >= len(lines):
-      self.warn('Malformed close')
-    if lines[a-1] != '':
-      self.warn('Missing newline after boilerplate')
-      # take a step back
-      a -= 1
-      
-    i = a
-    b = None
-    # Postcondition: b is the index of the line following the last line of the close
-    while i < len(lines):
-      line = lines[i]
-      if Comment.has_signature(line):
-        b = i+1
-        break
-      if line == '----':
-        self.warn('Reached close hline without seeing signature first?')
-        b = i
-        break
-      i += 1
-    if b is None:
-      raise FatalParsingException("Couldn't find end of close comment")
-    #if lines[b+1] != '':
-    #  self.warn('Missing blank line after close hline. Was {!r}'.format(lines[b+1]))
-    self.where = b
-    return '\n'.join(lines[a:b])
   def parse_close(self):
     """Parse attrs related to closing statement: 
     - closer (and whether admin) {{RMnac}} - always supposed to be substed tho. Same w {{RMpmc}}
@@ -322,11 +265,10 @@ class RM(object):
     - date RM closed
     - close outcome (moved, not moved, no consensus, withdrawn, ...)
     """
-    close_str = self._extract_close()
-    self.log_val(close_str=close_str)
-    close = Comment(close_str)
+    close = self.extracted.close
+    self.log_val(close_str=close.text[:200])
     self.setn(
       closer=close.author,
       close_date=close.timestamp,
-      outcome=close.get_close_outcome(),
+      outcome=close.outcome,
     )    
