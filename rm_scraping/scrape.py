@@ -97,9 +97,11 @@ if __name__ == '__main__':
   f_fail = open('failures.tsv', oflag)
   i_pg = 0
   i_rm = 0
+  skipped = 0
   for result in results:
     # Don't rescrape pages we've already done.
     if result['title'] in extant_pages:
+      skipped += 1
       continue
     for rm in scrape_rms_for_title(result['title'], f_fail):
       rms.append(rm)
@@ -115,10 +117,11 @@ if __name__ == '__main__':
 
     i_pg += 1
     if i_pg % 100 == 0:
-      print("i_pg = {}".format(i_pg))
+      print("i_pg = {}; skipped = {}".format(i_pg, skipped))
       
   if rms:
     flush_rms(rms, out_rm, out_votes, out_pols)
 
   for f in [frm, fvotes, fpols, f_fail]:
       f.close()
+  print("Skipped {} pages".format(skipped))

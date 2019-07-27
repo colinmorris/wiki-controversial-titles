@@ -42,7 +42,7 @@ class RM(object):
       # Size of RM discussion measured in various units
       'chars', 
       'n_comments', # Does not include nomination or close
-      'n_participants', # Not counting closer or relisters
+      'n_participants', # Not counting closer or relisters - but including nominator (which is kinda silly I guess...)
       # n_votes is just the length of self.votes. So NB that it includes
       # level-1 comments even if they don't begin with a bolded !vote.
       # Multiple 'votes' from the same user are deduped.
